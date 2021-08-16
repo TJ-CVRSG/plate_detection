@@ -96,7 +96,7 @@ def compute_iou(box1, box2):
 
 if __name__ == '__main__':
     tflite_model_path = 'tflite_model/ssdlite_mbv2.tflite'
-    image_dir = 'test/'
+    image_dir = 'ccpd_test/'
 
     threshold = 0.8
     num_great_than_threshold = 0

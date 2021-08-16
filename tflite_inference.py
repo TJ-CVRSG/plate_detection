@@ -4,6 +4,7 @@ from PIL import Image
 from PIL import ImageDraw
 import math
 from anchor import anchors
+from pathlib import Path
 
 
 class CVRSGModel():
@@ -63,12 +64,11 @@ def decode_box_encoding(box_encoding, anchor):
 
 if __name__ == '__main__':
     tflite_model_path = 'tflite_model/ssdlite_mbv2.tflite'
-    image_paths = [
-        'images/0.jpg',
-        'images/1.jpg',
-        'images/2.jpg',
-        'images/3.jpg',
-    ]
+    
+    image_dir = './images/'
+    
+    image_paths = [f for f in Path(image_dir).iterdir()]
+    image_paths.sort(key=lambda f: f.stem, reverse=True)
 
     model = CVRSGModel(tflite_model_path)
 
@@ -90,6 +90,6 @@ if __name__ == '__main__':
 
         image_draw = ImageDraw.Draw(image)
         image_draw.rectangle(xy=[xmin, ymin, xmax, ymax],
-                             width=5, outline=(203, 67, 53))
+                             width=2, outline=(203, 67, 53))
 
-        image.show()
+        image.save('./result/' + image_path.name)
