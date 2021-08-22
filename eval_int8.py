@@ -3,8 +3,6 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import math
-from anchor import anchors
-from PIL import ImageDraw
 
 
 class CVRSGModel():
@@ -95,17 +93,19 @@ def compute_iou(box1, box2):
 
 
 if __name__ == '__main__':
-    tflite_model_path = 'tflite_model/ssdlite_mbv2.tflite'
+    tflite_model_path = 'tflite_model/detection/ssdlite_mbv2_160_0.125/detection.tflite'
+    anchors_path = 'tflite_model/detection/ssdlite_mbv2_160_0.125/anchors.txt'
+
     image_dir = 'ccpd_test/'
 
     threshold = 0.8
     num_great_than_threshold = 0
 
     model = CVRSGModel(tflite_model_path)
+    anchors = np.loadtxt(anchors_path)
 
     image_paths = [f for f in Path(image_dir).iterdir()]
     image_paths.sort(key=lambda f: f.stem, reverse=True)
-
 
     for image_path in image_paths:
         image = Image.open(image_path).crop(

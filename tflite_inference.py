@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 from PIL import ImageDraw
 import math
-from anchor import anchors
 from pathlib import Path
 
 
@@ -62,15 +61,19 @@ def decode_box_encoding(box_encoding, anchor):
 
     return decodeBox, xmin, ymin, xmax, ymax
 
+
 if __name__ == '__main__':
-    tflite_model_path = 'tflite_model/ssdlite_mbv2.tflite'
-    
+    tflite_model_path = 'tflite_model/detection/ssdlite_mbv2_160_0.125/detection.tflite'
+    anchors_path = 'tflite_model/detection/ssdlite_mbv2_160_0.125/anchors.txt'
+
     image_dir = './images/'
-    
-    image_paths = [f for f in Path(image_dir).iterdir()]
-    image_paths.sort(key=lambda f: f.stem, reverse=True)
+    image_dir = '/home/tang/plate_detection/DataFromWeb/'
 
     model = CVRSGModel(tflite_model_path)
+    anchors = np.loadtxt(anchors_path)
+
+    image_paths = [f for f in Path(image_dir).iterdir()]
+    image_paths.sort(key=lambda f: f.stem, reverse=True)
 
     for image_path in image_paths:
         image = Image.open(image_path).resize(
@@ -79,7 +82,8 @@ if __name__ == '__main__':
         class_preds, box_encodings = model.process(image)
         box_idx = np.argmax(class_preds[0][:, 1])
 
-        box = 0.03998513147234917 * (box_encodings[0, box_idx] - 14)
+        box = 0.047391898930072784 * (box_encodings[0, box_idx] + 4)
+        # box = 0.03998513147234917 * (box_encodings[0, box_idx] - 14)
         decode, xmin, ymin, xmax, ymax = decode_box_encoding(
             box, anchors[box_idx])
 
@@ -92,4 +96,4 @@ if __name__ == '__main__':
         image_draw.rectangle(xy=[xmin, ymin, xmax, ymax],
                              width=2, outline=(203, 67, 53))
 
-        image.save('./result/' + image_path.name)
+        image.show()
