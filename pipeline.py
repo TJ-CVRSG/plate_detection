@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from PIL import Image
-from PIL import ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import math
 from pathlib import Path
 
@@ -116,28 +115,31 @@ if __name__ == '__main__':
     image_paths.sort(key=lambda f: f.stem, reverse=True)
 
     for image_path in image_paths:
-        image = Image.open(image_path).resize(
+        original_image = Image.open(image_path)
+        resized_image = original_image.resize(
             (detection_model.input_w(), detection_model.input_h()))
 
-        class_preds, box_encodings = detection_model.process(image)
+        class_preds, box_encodings = detection_model.process(resized_image)
         box_idx = np.argmax(class_preds[0][:, 1])
 
         box = 0.047391898930072784 * (box_encodings[0, box_idx] + 4)
         # box = 0.03998513147234917 * (box_encodings[0, box_idx] - 14)
         xmin, ymin, xmax, ymax = decode_box_encoding(box, anchors[box_idx])
 
-        bbox = (int(xmin*image.width), int(ymin*image.width),
-                int(xmax*image.height), int(ymax*image.height))
+        bbox = (int(xmin*original_image.width), int(ymin*original_image.height),
+                int(xmax*original_image.width), int(ymax*original_image.height))
 
-        region = image.crop(bbox)
+        region = original_image.crop(bbox)
         region = region.resize((rcgn_model.input_w(), rcgn_model.input_h()))
+
         rcgn_str = infer_rcgn(rcgn_model, region)
 
-        image_draw = ImageDraw.Draw(image)
+        image_draw = ImageDraw.Draw(original_image)
         image_draw.rectangle(xy=bbox,
                              width=2,
                              outline=(203, 67, 53))
 
-        image_draw.text(xy=(0, 0), text=rcgn_str)
+        ft = ImageFont.truetype("FiraCode-Regular.ttf", 20)
+        image_draw.text(xy=(0, 0), text=rcgn_str, font=ft, fill=(255, 0, 0))
 
-        image.show()
+        original_image.show()
